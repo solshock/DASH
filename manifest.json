@@ -1,0 +1,10 @@
+{
+  "id": "solshock-command-center",
+  "name": "SOLSHOCK Command Center",
+  "version": "1.0.0",
+  "minAppVersion": "1.4.0",
+  "description": "SOLSHOCK business dashboard — AI usage meters, vault navigation, weather, and agent status.",
+  "author": "SOLSHOCK Coastal Clothing Co.",
+  "authorUrl": "https://solshockco.com",
+  "isDesktopOnly": true
+}
