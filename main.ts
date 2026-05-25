@@ -42,6 +42,8 @@ interface Settings {
     pinterest: string;
     tiktok: string;
     vaultFolders: { [key: string]: string };
+    workbenchNote: string;
+    workbenchLinks: CustomLink[];
 }
 
 const mkUsage = (dailyLimit = 100, monthlyLimit = 3000): UsageData => ({
@@ -71,6 +73,8 @@ const DEFAULT_SETTINGS: Settings = {
     customLinks: [],
     pinterest: '',
     tiktok: '',
+    workbenchNote: '',
+    workbenchLinks: [],
     vaultFolders: {
         projects:      'Solshock Projects',
         mike:          'Mike',
@@ -142,6 +146,7 @@ class DashboardView extends ItemView {
     ${this.hQuickLinks()}
     ${this.hSocial()}
     ${this.hVaultNav()}
+    ${this.hWorkbench()}
     ${this.hAgents()}
     ${this.hKanban()}
     ${this.hCustomLinks()}
@@ -326,6 +331,59 @@ class DashboardView extends ItemView {
 </section>`;
     }
 
+    // ── Workbench ─────────────────────────────────────────────────────────────────
+
+    private hWorkbench(): string {
+        const note  = this.plugin.settings.workbenchNote  ?? '';
+        const links = this.plugin.settings.workbenchLinks ?? [];
+        return `
+<section class="ss-section ss-section-wide">
+  <h2 class="ss-title">🔧 Workbench</h2>
+  <div class="ss-workbench">
+
+    <div class="ss-wb-editor-panel">
+      <div class="ss-wb-toolbar">
+        <span class="ss-wb-label">📝 Notes</span>
+        <div class="ss-wb-toolbar-btns">
+          <button class="ss-btn-sm ss-wb-mode active" id="ss-wb-edit-btn">Edit</button>
+          <button class="ss-btn-sm ss-wb-mode" id="ss-wb-preview-btn">Preview</button>
+          <span class="ss-wb-saved" id="ss-wb-saved">Saved ✓</span>
+        </div>
+      </div>
+      <textarea class="ss-wb-textarea" id="ss-wb-textarea" placeholder="Start writing… supports Markdown" spellcheck="true">${note}</textarea>
+      <div class="ss-wb-preview ss-hidden" id="ss-wb-preview"></div>
+    </div>
+
+    <div class="ss-wb-links-panel">
+      <div class="ss-wb-toolbar">
+        <span class="ss-wb-label">🔗 Workbench Links</span>
+      </div>
+      <div class="ss-wb-links-scroll" id="ss-wb-links-list">
+        ${links.map(l => this.hWbLinkRow(l)).join('')}
+      </div>
+      <div class="ss-wb-add-row">
+        <input class="ss-input" id="ss-wb-link-name" placeholder="Name…" />
+        <input class="ss-input" id="ss-wb-link-url"  placeholder="https://… or vault note path" />
+        <button class="ss-btn-sm" id="ss-wb-add-link">＋ Add</button>
+      </div>
+    </div>
+
+  </div>
+</section>`;
+    }
+
+    private hWbLinkRow(l: CustomLink): string {
+        const isVault = !l.url.startsWith('http');
+        return `
+<div class="ss-wb-link-row" data-wb-link-id="${l.id}">
+  ${isVault
+    ? `<button class="ss-wb-link-btn" data-open-note="${l.url}">📄 ${l.name}</button>`
+    : `<a class="ss-wb-link-btn" href="${l.url}" target="_blank" rel="noopener noreferrer">🔗 ${l.name}</a>`
+  }
+  <button class="ss-del-btn" data-del-wb-link="${l.id}" title="Remove">✕</button>
+</div>`;
+    }
+
     // ── Tools & Agents ────────────────────────────────────────────────────────
 
     private hAgents(): string {
@@ -460,13 +518,28 @@ hermes kanban complete &lt;id&gt; --summary "Done"</pre>
     private wire(el: Element) {
         el.addEventListener('click', e => this.onClick(e));
         el.addEventListener('keydown', e => {
+            const t = e.target as HTMLElement;
             if ((e as KeyboardEvent).key === 'Enter') {
-                const t = e.target as HTMLElement;
-                if (t.id === 'ss-link-url' || t.id === 'ss-link-name') {
-                    this.addCustomLink(el);
-                }
+                if (t.id === 'ss-link-url'     || t.id === 'ss-link-name')    this.addCustomLink(el);
+                if (t.id === 'ss-wb-link-url'  || t.id === 'ss-wb-link-name') this.addWbLink();
             }
         });
+
+        // Workbench note — auto-save with debounce
+        let saveTimer: ReturnType<typeof setTimeout>;
+        const textarea = el.querySelector<HTMLTextAreaElement>('#ss-wb-textarea');
+        const savedEl  = el.querySelector<HTMLElement>('#ss-wb-saved');
+        if (textarea) {
+            textarea.addEventListener('input', () => {
+                if (savedEl) savedEl.textContent = 'Saving…';
+                clearTimeout(saveTimer);
+                saveTimer = setTimeout(() => {
+                    this.plugin.settings.workbenchNote = textarea.value;
+                    this.plugin.saveSettings();
+                    if (savedEl) savedEl.textContent = 'Saved ✓';
+                }, 600);
+            });
+        }
     }
 
     private onClick(e: Event) {
@@ -524,6 +597,25 @@ hermes kanban complete &lt;id&gt; --summary "Done"</pre>
         // Site status refresh
         if (t.id === 'ss-status-refresh') {
             this.checkSiteStatus(this.contentEl);
+            return;
+        }
+
+        // Workbench — toggle edit/preview
+        if (t.id === 'ss-wb-edit-btn')    { this.wbMode('edit');    return; }
+        if (t.id === 'ss-wb-preview-btn') { this.wbMode('preview'); return; }
+
+        // Workbench — add link
+        if (t.id === 'ss-wb-add-link') { this.addWbLink(); return; }
+
+        // Workbench — delete link
+        const delWb = t.closest<HTMLElement>('[data-del-wb-link]');
+        if (delWb) { this.deleteWbLink(delWb.dataset.delWbLink!); return; }
+
+        // Workbench — open vault note
+        const noteBtn = t.closest<HTMLElement>('[data-open-note]');
+        if (noteBtn) {
+            this.app.workspace.openLinkText(noteBtn.dataset.openNote!, '', false);
+            return;
         }
     }
 
@@ -591,6 +683,66 @@ hermes kanban complete &lt;id&gt; --summary "Done"</pre>
             this.app.workspace.openLinkText(path, '', false);
             new Notice(`📁 ${path}`);
         }
+    }
+
+    // ── Workbench methods ─────────────────────────────────────────────────────────
+
+    private wbMode(mode: 'edit' | 'preview') {
+        const textarea   = this.contentEl.querySelector<HTMLTextAreaElement>('#ss-wb-textarea');
+        const preview    = this.contentEl.querySelector<HTMLElement>('#ss-wb-preview');
+        const editBtn    = this.contentEl.querySelector<HTMLElement>('#ss-wb-edit-btn');
+        const previewBtn = this.contentEl.querySelector<HTMLElement>('#ss-wb-preview-btn');
+        if (!textarea || !preview || !editBtn || !previewBtn) return;
+
+        if (mode === 'preview') {
+            preview.innerHTML = this.simpleMarkdown(textarea.value);
+            textarea.classList.add('ss-hidden');
+            preview.classList.remove('ss-hidden');
+            editBtn.classList.remove('active');
+            previewBtn.classList.add('active');
+        } else {
+            textarea.classList.remove('ss-hidden');
+            preview.classList.add('ss-hidden');
+            editBtn.classList.add('active');
+            previewBtn.classList.remove('active');
+        }
+    }
+
+    private simpleMarkdown(md: string): string {
+        return md
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+            .replace(/^## (.+)$/gm,  '<h2>$1</h2>')
+            .replace(/^# (.+)$/gm,   '<h1>$1</h1>')
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g,     '<em>$1</em>')
+            .replace(/`(.+?)`/g,       '<code>$1</code>')
+            .replace(/^- (.+)$/gm,     '<li>$1</li>')
+            .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+            .replace(/\n\n+/g, '</p><p>')
+            .replace(/\n/g, '<br>');
+    }
+
+    private addWbLink() {
+        const nameEl = this.contentEl.querySelector<HTMLInputElement>('#ss-wb-link-name');
+        const urlEl  = this.contentEl.querySelector<HTMLInputElement>('#ss-wb-link-url');
+        if (!nameEl || !urlEl) return;
+        const name = nameEl.value.trim();
+        const url  = urlEl.value.trim();
+        if (!name || !url) { new Notice('Enter both a name and a URL or note path.'); return; }
+
+        const link: CustomLink = { id: Date.now().toString(), name, url };
+        this.plugin.settings.workbenchLinks.push(link);
+        this.plugin.saveSettings();
+        this.contentEl.querySelector('#ss-wb-links-list')?.insertAdjacentHTML('beforeend', this.hWbLinkRow(link));
+        nameEl.value = '';
+        urlEl.value  = '';
+    }
+
+    private deleteWbLink(id: string) {
+        this.plugin.settings.workbenchLinks = this.plugin.settings.workbenchLinks.filter(l => l.id !== id);
+        this.plugin.saveSettings();
+        this.contentEl.querySelector(`[data-wb-link-id="${id}"]`)?.remove();
     }
 
     // ── Custom link CRUD ──────────────────────────────────────────────────────
@@ -883,6 +1035,8 @@ export default class SolshockPlugin extends Plugin {
             usage:          { ...DEFAULT_SETTINGS.usage,          ...saved.usage },
             agentStatuses:  { ...DEFAULT_SETTINGS.agentStatuses,  ...saved.agentStatuses },
             vaultFolders:   { ...DEFAULT_SETTINGS.vaultFolders,   ...saved.vaultFolders },
+            workbenchNote:  saved.workbenchNote  ?? '',
+            workbenchLinks: saved.workbenchLinks ?? [],
         };
     }
 
