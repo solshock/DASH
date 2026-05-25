@@ -23,7 +23,7 @@ const PALETTES = {
   tide:     ['#60B8FF', '#87CEEB', '#2EC4B6', '#1a6fb8', '#0d4a8a', '#8FBC8F', '#F5D060', '#FF8C00', '#C9880A'],
   classic:  ['#C9880A', '#F5D060', '#60B8FF', '#87CEEB', '#FF8C00', '#FFFFFF', '#1a2a4a', '#8FBC8F', '#FF6B6B'],
   reef:     ['#FF6B6B', '#FFB997', '#F5D060', '#2EC4B6', '#60B8FF', '#9B59B6', '#FF8C00', '#C9880A', '#87CEEB'],
-  obsidian: ['#9D7FEA', '#C9880A', '#FF6B2B', '#F5D060', '#C4B5FD', '#7C6FCD', '#FF6B6B', '#8AE8B0', '#A78BFA'],
+  obsidian: ['#F5D060', '#60B8FF', '#f76f07', '#87CEEB', '#d00ee6', '#a10ee6', '#3CCB7F', '#ff5b5b', '#C9880A'],
 };
 
 const TWEAK_DEFAULTS = {
