@@ -18,16 +18,18 @@ import {
 } from './tweaks-panel.jsx';
 
 const PALETTES = {
-  coastal: ['#C9880A', '#60B8FF', '#FF8C00', '#F5D060', '#87CEEB', '#2EC4B6', '#FF6B6B', '#8FBC8F', '#9B59B6'],
-  sunset:  ['#FF8C00', '#E85D04', '#F5D060', '#C9880A', '#FF6B6B', '#9B59B6', '#60B8FF', '#87CEEB', '#8FBC8F'],
-  tide:    ['#60B8FF', '#87CEEB', '#2EC4B6', '#1a6fb8', '#0d4a8a', '#8FBC8F', '#F5D060', '#FF8C00', '#C9880A'],
-  classic: ['#C9880A', '#F5D060', '#60B8FF', '#87CEEB', '#FF8C00', '#FFFFFF', '#1a2a4a', '#8FBC8F', '#FF6B6B'],
-  reef:    ['#FF6B6B', '#FFB997', '#F5D060', '#2EC4B6', '#60B8FF', '#9B59B6', '#FF8C00', '#C9880A', '#87CEEB'],
+  coastal:  ['#C9880A', '#60B8FF', '#FF8C00', '#F5D060', '#87CEEB', '#2EC4B6', '#FF6B6B', '#8FBC8F', '#9B59B6'],
+  sunset:   ['#FF8C00', '#E85D04', '#F5D060', '#C9880A', '#FF6B6B', '#9B59B6', '#60B8FF', '#87CEEB', '#8FBC8F'],
+  tide:     ['#60B8FF', '#87CEEB', '#2EC4B6', '#1a6fb8', '#0d4a8a', '#8FBC8F', '#F5D060', '#FF8C00', '#C9880A'],
+  classic:  ['#C9880A', '#F5D060', '#60B8FF', '#87CEEB', '#FF8C00', '#FFFFFF', '#1a2a4a', '#8FBC8F', '#FF6B6B'],
+  reef:     ['#FF6B6B', '#FFB997', '#F5D060', '#2EC4B6', '#60B8FF', '#9B59B6', '#FF8C00', '#C9880A', '#87CEEB'],
+  obsidian: ['#9D7FEA', '#C9880A', '#FF6B2B', '#F5D060', '#C4B5FD', '#7C6FCD', '#FF6B6B', '#8AE8B0', '#A78BFA'],
 };
 
 const TWEAK_DEFAULTS = {
   palette:         'coastal',
   bg:              'navy',
+  theme:           'coastal',
   density:         'regular',
   illustrations:   true,
   animatedDivider: true,
@@ -282,6 +284,7 @@ export function App() {
       ref={containerRef}
       data-density={t.density}
       data-bg={t.bg}
+      data-theme={t.theme || 'coastal'}
     >
       <div className="app-bg" />
       <div className="app" data-sidebar={sidebarOpen ? 'open' : 'closed'} style={{ '--vault-w': '260px' }}>
@@ -332,18 +335,29 @@ export function App() {
           open={tweaksOpen}
           onClose={() => setTweaksOpen(false)}
           containerRef={containerRef}
-          title="Tweaks · Coastal Vault"
+          title="Tweaks · Solshock Ledger"
         >
+          <TweakSection label="Theme" />
+          <TweakSelect
+            label="Color theme"
+            value={t.theme || 'coastal'}
+            options={[
+              { value: 'coastal',  label: 'Coastal (default)' },
+              { value: 'obsidian', label: 'Obsidian' },
+            ]}
+            onChange={(v) => setTweak('theme', v)}
+          />
           <TweakSection label="Palette" />
           <TweakSelect
             label="Donut colors"
             value={t.palette}
             options={[
-              { value: 'coastal', label: 'Coastal (default)' },
-              { value: 'sunset',  label: 'Sunset' },
-              { value: 'tide',    label: 'Tide' },
-              { value: 'classic', label: 'Solshock Classic' },
-              { value: 'reef',    label: 'Reef' },
+              { value: 'coastal',  label: 'Coastal (default)' },
+              { value: 'obsidian', label: 'Obsidian' },
+              { value: 'sunset',   label: 'Sunset' },
+              { value: 'tide',     label: 'Tide' },
+              { value: 'classic',  label: 'Solshock Classic' },
+              { value: 'reef',     label: 'Reef' },
             ]}
             onChange={(v) => setTweak('palette', v)}
           />

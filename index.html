@@ -54,6 +54,84 @@
   --font-size: 14px;
 }
 
+/* ── SOLSHOCK Obsidian Theme ─────────────────────────────────────────── */
+/* Volcanic glass · purple iridescence · ember core · SOLSHOCK gold      */
+[data-theme="obsidian"] {
+  --navy:          #0B0B12;
+  --navy-mid:      #131320;
+  --navy-light:    #1A1A2E;
+  --navy-elev:     #1F1F35;
+  --sky-blue:      #9D7FEA;
+  --electric-blue: #C4B5FD;
+  --gold:          #C9880A;
+  --gold-light:    #F5D060;
+  --orange:        #FF6B2B;
+  --orange-deep:   #E84D0A;
+  --white:         #FFFFFF;
+  --foam:          #E2E0F0;
+  --sand:          #C9B79C;
+  --coral:         #FF6B6B;
+  --teal:          #7C6FCD;
+  --sage:          #8FBC8F;
+  --good:          #8AE8B0;
+  --bad:           #FF6B6B;
+  --ink:           rgba(226, 224, 240, 0.92);
+  --ink-2:         rgba(226, 224, 240, 0.62);
+  --ink-3:         rgba(226, 224, 240, 0.38);
+  --line:          rgba(157, 127, 234, 0.20);
+  --line-2:        rgba(255, 255, 255, 0.07);
+  --gold-grad:     linear-gradient(135deg, #C9880A 0%, #F5D060 50%, #C9880A 100%);
+  --signature-grad:linear-gradient(90deg, #F5D060, #9D7FEA, #FF6B2B, #F5D060);
+  --divider-grad:  linear-gradient(90deg, #9D7FEA, #0B0B12, #C9880A, #F5D060, #131320, #9D7FEA);
+  background: var(--navy);
+  color: var(--ink);
+}
+[data-theme="obsidian"] .app-bg {
+  background:
+    radial-gradient(ellipse at 78% -8%, rgba(157,127,234,0.13), transparent 50%),
+    radial-gradient(ellipse at -8% 88%, rgba(255,107,43,0.08), transparent 50%),
+    linear-gradient(180deg, #0B0B12 0%, #0F0F1A 100%);
+}
+[data-theme="obsidian"][data-bg="midnight"] .app-bg {
+  background: radial-gradient(ellipse at 50% 0%, #12123C, #060610 70%);
+}
+[data-theme="obsidian"][data-bg="dusk"] .app-bg {
+  background:
+    radial-gradient(ellipse at 72% 8%, rgba(255,107,43,0.22), transparent 55%),
+    radial-gradient(ellipse at 18% 108%, rgba(157,127,234,0.12), transparent 50%),
+    linear-gradient(180deg, #1A0A22 0%, #0E0A18 100%);
+}
+[data-theme="obsidian"] .ribbon     { background: #06060A; }
+[data-theme="obsidian"] .vault      { background: linear-gradient(180deg, #090912 0%, #0C0C18 100%); }
+[data-theme="obsidian"] .statusbar  { background: #06060A; }
+[data-theme="obsidian"] .cmd-pal    { background: linear-gradient(180deg, #1C1C2E 0%, #141420 100%); border-color: rgba(157,127,234,0.28); }
+[data-theme="obsidian"] .cmd-scrim  { background: rgba(6,6,10,0.65); }
+[data-theme="obsidian"] .modal      { background: linear-gradient(180deg, #1C1C2E 0%, #141420 100%); border-color: rgba(157,127,234,0.28); }
+[data-theme="obsidian"] .modal-scrim { background: rgba(6,6,10,0.70); }
+[data-theme="obsidian"] .ribbon-btn:hover  { color: var(--sky-blue); }
+[data-theme="obsidian"] .ribbon-btn.on {
+  background: rgba(157,127,234,0.15);
+  color: var(--electric-blue);
+  box-shadow: inset 0 0 0 1px rgba(157,127,234,0.30);
+}
+[data-theme="obsidian"] .tab.on    { color: var(--electric-blue); }
+[data-theme="obsidian"] .tab.on::after { background: linear-gradient(90deg, #9D7FEA, #C4B5FD); }
+[data-theme="obsidian"] .tab-new:hover { color: var(--electric-blue); }
+[data-theme="obsidian"] .file-row.active {
+  background: rgba(157,127,234,0.10);
+  color: var(--electric-blue);
+  border-left-color: var(--sky-blue);
+}
+[data-theme="obsidian"] .cmd-row.on,
+[data-theme="obsidian"] .cmd-row:hover { background: rgba(157,127,234,0.10); color: var(--electric-blue); }
+[data-theme="obsidian"] .status-pill  { background: rgba(157,127,234,0.15); color: var(--electric-blue); }
+[data-theme="obsidian"] .btn-ghost:hover { border-color: var(--sky-blue); color: var(--electric-blue); }
+[data-theme="obsidian"] .btn-link      { color: var(--sky-blue); }
+[data-theme="obsidian"] .btn-link:hover { color: var(--electric-blue); }
+[data-theme="obsidian"] .field input:focus,
+[data-theme="obsidian"] .field select:focus { border-color: var(--sky-blue); }
+[data-theme="obsidian"] .vault-search:focus-within { border-color: rgba(157,127,234,0.35); }
+
 [data-density="compact"]  { --density-pad: 10px; --density-row: 34px; --font-size: 13px; }
 [data-density="regular"]  { --density-pad: 14px; --density-row: 40px; --font-size: 14px; }
 [data-density="spacious"] { --density-pad: 20px; --density-row: 50px; --font-size: 15px; }
@@ -857,7 +935,7 @@ body {
 }
 </style>
 </head>
-<body data-density="regular" data-bg="navy">
+<body data-density="regular" data-bg="navy" data-theme="coastal">
 <div class="app-bg"></div>
 <div id="root"></div>
 
@@ -866,6 +944,7 @@ body {
     "palette": "classic",
     "density": "regular",
     "bg": "navy",
+    "theme": "coastal",
     "illustrations": true,
     "showRightPanel": true,
     "animatedDivider": true,
