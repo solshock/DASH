@@ -1,0 +1,10 @@
+{
+  "id": "solshock-ledger",
+  "name": "Solshock Ledger",
+  "version": "1.0.0",
+  "minAppVersion": "1.0.0",
+  "description": "Coastal finance vault — envelopes, bills, goals, debt payoff, and ledger in one pane.",
+  "author": "Solshock",
+  "authorUrl": "https://solshockco.com",
+  "isDesktopOnly": false
+}
