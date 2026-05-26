@@ -242,13 +242,21 @@ function AddGoalModal({ state, setState, onClose }) {
 }
 
 // ── Root App ─────────────────────────────────────────────────────────────────
-export function App() {
+export function App({ initialState, onSave }) {
   const containerRef           = React.useRef(null);
   const [t, setTweak]          = useTweaks(TWEAK_DEFAULTS);
   const [tweaksOpen, setTweaksOpen] = React.useState(false);
 
-  const [state, setState]      = React.useState(() => JSON.parse(JSON.stringify(seed)));
+  const [state, setStateRaw]   = React.useState(() => initialState ?? JSON.parse(JSON.stringify(seed)));
   const totals                 = React.useMemo(() => deriveTotals(state), [state]);
+
+  const setState = React.useCallback((updater) => {
+    setStateRaw((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      onSave?.(next);
+      return next;
+    });
+  }, [onSave]);
 
   const [view, setView]        = React.useState('dashboard');
   const [tabs, setTabs]        = React.useState(['dashboard', 'envelopes', 'bills']);
