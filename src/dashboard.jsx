@@ -57,10 +57,10 @@ export function DashboardView({ state, palette, totals, onCommand, illustrations
       <div className="divider-anim" style={{ marginBottom: 22, opacity: 0.7 }} />
 
       <div className="kpi-row">
-        <KPI label="Net Worth"    value={fmt(totals.netWorth)} meta={<><span className="up">▲ $612</span><span> this month</span></>} gold deco="🌊" />
-        <KPI label="Income · May" value={fmt(totals.income)}   meta={<span className="muted">2 of 2 paychecks</span>} deco="🪙" />
-        <KPI label="Spent · May"  value={fmt(totals.spent)}    meta={<><span className={totals.spent < totals.budgetTotal ? 'up' : 'down'}>{Math.round((totals.spent / totals.budgetTotal) * 100)}%</span><span> of budget</span></>} deco="📥" />
-        <KPI label="Saved · May"  value={fmt(totals.saved)}    meta={<><span className="up">↗︎ on track</span><span> for goals</span></>} deco="🐚" />
+        <KPI label="Net Worth"    value={fmt(totals.netWorth)} meta={<span className="muted">assets minus debt</span>} gold deco="🌊" />
+        <KPI label="Income · May" value={fmt(totals.income)}   meta={<span className="muted">{state.txns.filter(t => t.amount > 0).length} deposits logged</span>} deco="🪙" />
+        <KPI label="Spent · May"  value={fmt(totals.spent)}    meta={totals.budgetTotal > 0 ? <><span className={totals.spent < totals.budgetTotal ? 'up' : 'down'}>{Math.round((totals.spent / totals.budgetTotal) * 100)}%</span><span> of budget</span></> : <span className="muted">set budgets in envelopes</span>} deco="📥" />
+        <KPI label="Saved · May"  value={fmt(totals.saved)}    meta={<span className="muted">to savings envelope</span>} deco="🐚" />
       </div>
 
       <div className="grid-2">
@@ -73,7 +73,13 @@ export function DashboardView({ state, palette, totals, onCommand, illustrations
             <span className="tag gold">live</span>
           </div>
           <div className="donut-wrap">
-            <svg className="donut-svg" viewBox="0 0 200 200">
+            {segments.length === 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8, minHeight: 200, color: 'var(--sl-ink-3)', fontSize: 12 }}>
+                <div style={{ fontSize: 28 }}>🌊</div>
+                <div>No spending yet — add a transaction</div>
+              </div>
+            )}
+            {segments.length > 0 && <svg className="donut-svg" viewBox="0 0 200 200">
               <defs>
                 <filter id="sl-soft" x="-20%" y="-20%" width="140%" height="140%">
                   <feGaussianBlur stdDeviation="1.5" />
@@ -114,7 +120,7 @@ export function DashboardView({ state, palette, totals, onCommand, illustrations
                   </g>
                 </g>
               )}
-            </svg>
+            </svg>}
             <div className="donut-legend">
               {segments.map((s) => (
                 <div key={s.id} className={'legend-row ' + (hover && hover !== s.id ? 'dim' : '')}
@@ -147,14 +153,21 @@ export function DashboardView({ state, palette, totals, onCommand, illustrations
             <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 24, color: 'var(--sl-coral)', marginBottom: 4 }}>
               {fmt(totals.debtTotal)}
             </div>
-            <div style={{ fontSize: 11, color: 'var(--sl-ink-3)', marginBottom: 10 }}>across {state.debts.length} accounts · payoff in ~38 mo</div>
-            <div className="bar-wrap" style={{ height: 6 }}>
-              <div className="goal-bar-fill" style={{ width: '34%' }} />
-            </div>
-            <div className="bar-meta">
-              <span>{fmt(state.debts.reduce((s, d) => s + (d.original - d.balance), 0))} paid</span>
-              <span>34% retired</span>
-            </div>
+            <div style={{ fontSize: 11, color: 'var(--sl-ink-3)', marginBottom: 10 }}>across {state.debts.length} account{state.debts.length !== 1 ? 's' : ''}</div>
+            {state.debts.length > 0 && (() => {
+              const totalOrig = state.debts.reduce((s, d) => s + d.original, 0);
+              const totalPaid = state.debts.reduce((s, d) => s + (d.original - d.balance), 0);
+              const pct = totalOrig > 0 ? Math.round((totalPaid / totalOrig) * 100) : 0;
+              return <>
+                <div className="bar-wrap" style={{ height: 6 }}>
+                  <div className="goal-bar-fill" style={{ width: pct + '%' }} />
+                </div>
+                <div className="bar-meta">
+                  <span>{fmt(totalPaid)} paid</span>
+                  <span>{pct}% retired</span>
+                </div>
+              </>;
+            })()}
           </div>
 
           <div className="card tight">
@@ -165,9 +178,9 @@ export function DashboardView({ state, palette, totals, onCommand, illustrations
             <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 24 }} className="gold-text">
               {fmt(totals.goalSaved)} <span style={{ fontSize: 13, color: 'var(--sl-ink-3)', marginLeft: 4 }}>/ {fmtShort(totals.goalTarget)}</span>
             </div>
-            <div style={{ fontSize: 11, color: 'var(--sl-ink-3)', marginBottom: 10 }}>{Math.round((totals.goalSaved / totals.goalTarget) * 100)}% to the horizon</div>
+            <div style={{ fontSize: 11, color: 'var(--sl-ink-3)', marginBottom: 10 }}>{totals.goalTarget > 0 ? Math.round((totals.goalSaved / totals.goalTarget) * 100) + '% to the horizon' : 'no goals yet'}</div>
             <div className="bar-wrap" style={{ height: 6 }}>
-              <div className="bar-fill" style={{ width: (totals.goalSaved / totals.goalTarget) * 100 + '%' }} />
+              <div className="bar-fill" style={{ width: (totals.goalTarget > 0 ? (totals.goalSaved / totals.goalTarget) * 100 : 0) + '%' }} />
             </div>
           </div>
         </div>
